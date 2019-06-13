@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      MySQL 5.0                                    */
-/* Created on:     13-06-2019 17:41:32                          */
+/* Created on:     13-06-2019 19:05:30                          */
 /*==============================================================*/
 
 
@@ -108,7 +108,7 @@ create table BOLETA_FACTURA
 (
    ID_BOLETA            int not null auto_increment,
    ID_ACUERDO           int not null,
-   ID_PAGO              int not null,
+   ID_PAGO              int,
    ID_PAIS              int not null,
    ID_ESTADO_BOLETA     int not null,
    MONTO_NETO_USD       float not null,
@@ -368,7 +368,7 @@ create table PAIS
 create table PROPUESTA
 (
    ID_PROPUESTA         int not null auto_increment,
-   ID_ACUERDO           int not null,
+   ID_ACUERDO           int,
    ID_ESTUDIANTE        int not null,
    DESCRIPCION_PROPUESTA text not null,
    FECHA_CREACION_PROPUESTA datetime not null,
