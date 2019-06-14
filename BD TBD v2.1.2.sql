@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      MySQL 5.0                                    */
-/* Created on:     13-06-2019 19:05:30                          */
+/* Created on:     13-06-2019 20:55:33                          */
 /*==============================================================*/
 
 
@@ -8,9 +8,15 @@ drop table if exists ACUERDO;
 
 drop table if exists ASIGNACION;
 
+drop table if exists ASIGNACION_PRIVILEGIO;
+
 drop table if exists BOLETA_FACTURA;
 
-drop table if exists CALIFICACION;
+drop table if exists CALIFICACION_ESTUDIANTE;
+
+drop table if exists CALIFICACION_PROYECTO;
+
+drop table if exists CARGO;
 
 drop table if exists CATEGORIA;
 
@@ -19,6 +25,8 @@ drop table if exists CATEGORIA_HABILIDAD;
 drop table if exists CATEGORIA_PROYECTO;
 
 drop table if exists CIUDAD;
+
+drop table if exists COMISION_RANGO_PROYECTO;
 
 drop table if exists CONVERSION_MONEDA;
 
@@ -38,7 +46,7 @@ drop table if exists ESTADO_PROYECTO;
 
 drop table if exists ESTUDIANTE;
 
-drop table if exists GRUPO_PRIVILEGIO;
+drop table if exists GRUPO_PRIVILEGIO_USUARIO;
 
 drop table if exists HABILIDAD;
 
@@ -46,9 +54,13 @@ drop table if exists HABILIDAD_ESTUDIANTE;
 
 drop table if exists HABILIDAD_REQUERIDA;
 
+drop table if exists IMPUESTO;
+
 drop table if exists PAGO;
 
 drop table if exists PAIS;
+
+drop table if exists PRIVILEGIO;
 
 drop table if exists PROPUESTA;
 
@@ -65,6 +77,8 @@ drop table if exists REQUERIMIENTO;
 drop table if exists TEST_RANKING;
 
 drop table if exists TIPO_DOCUMENTO;
+
+drop table if exists TIPO_TEST_RANKING;
 
 drop table if exists TUTORIAL;
 
@@ -86,7 +100,6 @@ create table ACUERDO
    FECHA_TERMINO_TRABAJO datetime,
    FECHA_ACTUALIZACION_ACUERDO datetime,
    ESTADO_ACUERDO       int not null,
-   MONTO_ACUERDO_USD    float not null,
    SOFT_DELETE_ACUERDO  bool not null,
    primary key (ID_ACUERDO)
 );
@@ -97,8 +110,18 @@ create table ACUERDO
 create table ASIGNACION
 (
    ID_USUARIO           int not null,
-   ID_GRUPO             int not null,
+   ID_GRUPO_PRIVILEGIO_USUARIO int not null,
    HABILITADO           bool not null
+);
+
+/*==============================================================*/
+/* Table: ASIGNACION_PRIVILEGIO                                 */
+/*==============================================================*/
+create table ASIGNACION_PRIVILEGIO
+(
+   ID_PRIVILEGIO        int not null,
+   ID_GRUPO_PRIVILEGIO_USUARIO int not null,
+   TIMESTAMP_ASIGNACION_P timestamp not null
 );
 
 /*==============================================================*/
@@ -113,24 +136,47 @@ create table BOLETA_FACTURA
    ID_ESTADO_BOLETA     int not null,
    MONTO_NETO_USD       float not null,
    MONTO_NETO_LOCAL     float not null,
-   MONTO_COMISION_LOCAL float not null,
+   MONTO_IMPUESTO_LOCAL float not null,
    MONTO_ESTUDIANTE_LOCAL float not null,
-   SOFT_DELETE_BOLETA   bool not null,
+   REFERENCIA_BOLETA    varchar(100) not null,
    primary key (ID_BOLETA)
 );
 
 /*==============================================================*/
-/* Table: CALIFICACION                                          */
+/* Table: CALIFICACION_ESTUDIANTE                               */
 /*==============================================================*/
-create table CALIFICACION
+create table CALIFICACION_ESTUDIANTE
 (
-   ID_CALIFICACION      int not null auto_increment,
+   ID_CALIFICACION_ESTUDIANTE int not null auto_increment,
    ID_ESTUDIANTE        int not null,
-   ID_PROYECTO          int not null,
-   CALIFICACION         int not null,
-   COMENTARIO           text,
+   CALIFICACION_ESTUDIANTE int not null,
+   COMENTARIO_CAL_ESTUDIANTE text,
    FECHA_INGRESO_CALIFICACION datetime not null,
-   primary key (ID_CALIFICACION)
+   primary key (ID_CALIFICACION_ESTUDIANTE)
+);
+
+/*==============================================================*/
+/* Table: CALIFICACION_PROYECTO                                 */
+/*==============================================================*/
+create table CALIFICACION_PROYECTO
+(
+   ID_CALIFICACION_PROYECTO int not null auto_increment,
+   ID_PROYECTO          int not null,
+   CALIFICACION_PROYECTO int not null,
+   COMENTARIO_CAL_PROY  text,
+   FECHA_INGRESO_CAL_PROY datetime not null,
+   primary key (ID_CALIFICACION_PROYECTO)
+);
+
+/*==============================================================*/
+/* Table: CARGO                                                 */
+/*==============================================================*/
+create table CARGO
+(
+   ID_CARGO             int not null auto_increment,
+   NOMBRE_CARGO         varchar(50) not null,
+   DESCRIPCION_CARGO    text,
+   primary key (ID_CARGO)
 );
 
 /*==============================================================*/
@@ -181,6 +227,18 @@ create table CIUDAD
 );
 
 /*==============================================================*/
+/* Table: COMISION_RANGO_PROYECTO                               */
+/*==============================================================*/
+create table COMISION_RANGO_PROYECTO
+(
+   ID_COMISION          int not null auto_increment,
+   NOMBRE_COMISION      varchar(50) not null,
+   PORCENTAJE_COMISION  float not null,
+   FECHA_ACTUALIZACION_COMISION datetime,
+   primary key (ID_COMISION)
+);
+
+/*==============================================================*/
 /* Table: CONVERSION_MONEDA                                     */
 /*==============================================================*/
 create table CONVERSION_MONEDA
@@ -228,6 +286,7 @@ create table DIRECCION_USUARIO
    ID_USUARIO           int not null,
    ID_DIRECCION         int not null,
    DIRECCION_HABILITADA bool not null,
+   DIRECCION_FACTURACION bool not null,
    primary key (ID_DIRECCION_USUARIO)
 );
 
@@ -287,19 +346,17 @@ create table ESTUDIANTE
    NUMERO_MATRICULA     varchar(20) not null,
    ANO_INGRESO          int not null,
    CARRERA              varchar(100) not null,
-   CALIFICACION_PROM_ESTUDIANTE float,
    primary key (ID_ESTUDIANTE)
 );
 
 /*==============================================================*/
-/* Table: GRUPO_PRIVILEGIO                                      */
+/* Table: GRUPO_PRIVILEGIO_USUARIO                              */
 /*==============================================================*/
-create table GRUPO_PRIVILEGIO
+create table GRUPO_PRIVILEGIO_USUARIO
 (
-   ID_GRUPO             int not null auto_increment,
+   ID_GRUPO_PRIVILEGIO_USUARIO int not null auto_increment,
    NOMBRE_GRUPO         varchar(50) not null,
-   PRIVILEGIOS          text not null,
-   primary key (ID_GRUPO)
+   primary key (ID_GRUPO_PRIVILEGIO_USUARIO)
 );
 
 /*==============================================================*/
@@ -338,6 +395,19 @@ create table HABILIDAD_REQUERIDA
 );
 
 /*==============================================================*/
+/* Table: IMPUESTO                                              */
+/*==============================================================*/
+create table IMPUESTO
+(
+   ID_IMPUESTO          int not null auto_increment,
+   ID_PAIS              int not null,
+   NOMBRE_IMPUESTO      varchar(50) not null,
+   PORCENTAJE_IMPUESTO  float not null,
+   FECHA_ACTUALIZACION_IMPUESTO datetime,
+   primary key (ID_IMPUESTO)
+);
+
+/*==============================================================*/
 /* Table: PAGO                                                  */
 /*==============================================================*/
 create table PAGO
@@ -360,6 +430,17 @@ create table PAIS
    ID_DOCUMENTO         int,
    NOMBRE_PAIS          varchar(50) not null,
    primary key (ID_PAIS)
+);
+
+/*==============================================================*/
+/* Table: PRIVILEGIO                                            */
+/*==============================================================*/
+create table PRIVILEGIO
+(
+   ID_PRIVILEGIO        int not null auto_increment,
+   NOMBRE_PRIVILEGIO    varchar(50) not null,
+   DESCRIPCION_PRIVILEGIO varchar(100),
+   primary key (ID_PRIVILEGIO)
 );
 
 /*==============================================================*/
@@ -391,7 +472,6 @@ create table PROYECTO
    NOMBRE_PROYECTO      varchar(50) not null,
    FECHA__CREACION_PROYECTO datetime not null,
    DESCRIPCION_PROYECTO text not null,
-   CALIFICACION_PROM_PROY float,
    PLAZO_MAXIMO         int not null,
    PLAZO_MINIMO         int,
    FECHA_ACTUALIZAION_PROYECTO datetime,
@@ -405,6 +485,7 @@ create table PROYECTO
 create table RANGO_COSTO_CATEGORIA
 (
    ID_RANGO_COSTO       int not null auto_increment,
+   ID_COMISION          int not null,
    NOMBRE_RANGO         varchar(50) not null,
    VALOR_MINIMO_USD     float not null,
    VALOR_MAXIMO_USD     float not null,
@@ -431,8 +512,8 @@ create table REPRESENTANTE
 (
    ID_REPRESENTANTE     int not null auto_increment,
    ID_USUARIO           int not null,
+   ID_CARGO             int not null,
    ID_EMPRESA           int,
-   CARGO                varchar(50) not null,
    ESTADO_REPRESENTANTE bool not null,
    primary key (ID_REPRESENTANTE)
 );
@@ -457,7 +538,6 @@ create table TEST_RANKING
    ID_TEST_RANKING      int not null auto_increment,
    ID_ESTUDIANTE        int not null,
    NOMBRE_RANKING       varchar(50) not null,
-   NOTA_RANKING         int not null,
    APROBACION           bool,
    primary key (ID_TEST_RANKING)
 );
@@ -473,6 +553,19 @@ create table TIPO_DOCUMENTO
    NOMBRE_TIPO          varchar(50) not null,
    NUMERO_DOCUMENTO     varchar(50) not null,
    primary key (ID_DOCUMENTO)
+);
+
+/*==============================================================*/
+/* Table: TIPO_TEST_RANKING                                     */
+/*==============================================================*/
+create table TIPO_TEST_RANKING
+(
+   ID_TIPO_TEST_RANKING int not null auto_increment,
+   ID_TEST_RANKING      int not null,
+   TIPO_CONVERSION_RANKNG varchar(50) not null,
+   VALOR_RANKING        varchar(20) not null,
+   VALOR_CONVERTIDO     int not null,
+   primary key (ID_TIPO_TEST_RANKING)
 );
 
 /*==============================================================*/
@@ -527,8 +620,14 @@ alter table ACUERDO add constraint FK_RELATIONSHIP_20 foreign key (ID_PROYECTO)
 alter table ASIGNACION add constraint FK_RELATIONSHIP_14 foreign key (ID_USUARIO)
       references USUARIO (ID_USUARIO) on delete restrict on update restrict;
 
-alter table ASIGNACION add constraint FK_RELATIONSHIP_15 foreign key (ID_GRUPO)
-      references GRUPO_PRIVILEGIO (ID_GRUPO) on delete restrict on update restrict;
+alter table ASIGNACION add constraint FK_RELATIONSHIP_15 foreign key (ID_GRUPO_PRIVILEGIO_USUARIO)
+      references GRUPO_PRIVILEGIO_USUARIO (ID_GRUPO_PRIVILEGIO_USUARIO) on delete restrict on update restrict;
+
+alter table ASIGNACION_PRIVILEGIO add constraint FK_RELATIONSHIP_48 foreign key (ID_GRUPO_PRIVILEGIO_USUARIO)
+      references GRUPO_PRIVILEGIO_USUARIO (ID_GRUPO_PRIVILEGIO_USUARIO) on delete restrict on update restrict;
+
+alter table ASIGNACION_PRIVILEGIO add constraint FK_RELATIONSHIP_49 foreign key (ID_PRIVILEGIO)
+      references PRIVILEGIO (ID_PRIVILEGIO) on delete restrict on update restrict;
 
 alter table BOLETA_FACTURA add constraint FK_RELATIONSHIP_21 foreign key (ID_ACUERDO)
       references ACUERDO (ID_ACUERDO) on delete restrict on update restrict;
@@ -539,13 +638,13 @@ alter table BOLETA_FACTURA add constraint FK_RELATIONSHIP_22 foreign key (ID_PAG
 alter table BOLETA_FACTURA add constraint FK_RELATIONSHIP_24 foreign key (ID_PAIS)
       references PAIS (ID_PAIS) on delete restrict on update restrict;
 
-alter table BOLETA_FACTURA add constraint FK_RELATIONSHIP_38 foreign key (ID_ESTADO_BOLETA)
+alter table BOLETA_FACTURA add constraint FK_RELATIONSHIP_37 foreign key (ID_ESTADO_BOLETA)
       references ESTADO_BOLETA (ID_ESTADO_BOLETA) on delete restrict on update restrict;
 
-alter table CALIFICACION add constraint FK_RELATIONSHIP_33 foreign key (ID_ESTUDIANTE)
+alter table CALIFICACION_ESTUDIANTE add constraint FK_RELATIONSHIP_33 foreign key (ID_ESTUDIANTE)
       references ESTUDIANTE (ID_ESTUDIANTE) on delete restrict on update restrict;
 
-alter table CALIFICACION add constraint FK_RELATIONSHIP_34 foreign key (ID_PROYECTO)
+alter table CALIFICACION_PROYECTO add constraint FK_RELATIONSHIP_45 foreign key (ID_PROYECTO)
       references PROYECTO (ID_PROYECTO) on delete restrict on update restrict;
 
 alter table CATEGORIA_HABILIDAD add constraint FK_RELATIONSHIP_28 foreign key (ID_HABILIDAD)
@@ -554,7 +653,7 @@ alter table CATEGORIA_HABILIDAD add constraint FK_RELATIONSHIP_28 foreign key (I
 alter table CATEGORIA_HABILIDAD add constraint FK_RELATIONSHIP_29 foreign key (ID_CATEGORIA)
       references CATEGORIA (ID_CATEGORIA) on delete restrict on update restrict;
 
-alter table CATEGORIA_PROYECTO add constraint FK_RELATIONSHIP_36 foreign key (ID_RANGO_COSTO)
+alter table CATEGORIA_PROYECTO add constraint FK_RELATIONSHIP_35 foreign key (ID_RANGO_COSTO)
       references RANGO_COSTO_CATEGORIA (ID_RANGO_COSTO) on delete restrict on update restrict;
 
 alter table CIUDAD add constraint FK_RELATIONSHIP_10 foreign key (ID_PAIS)
@@ -575,10 +674,10 @@ alter table DIRECCION add constraint FK_RELATIONSHIP_32 foreign key (ID_UNIVERSI
 alter table DIRECCION add constraint FK_RELATIONSHIP_9 foreign key (ID_CIUDAD)
       references CIUDAD (ID_CIUDAD) on delete restrict on update restrict;
 
-alter table DIRECCION_USUARIO add constraint FK_RELATIONSHIP_44 foreign key (ID_DIRECCION)
+alter table DIRECCION_USUARIO add constraint FK_RELATIONSHIP_43 foreign key (ID_DIRECCION)
       references DIRECCION (ID_DIRECCION) on delete restrict on update restrict;
 
-alter table DIRECCION_USUARIO add constraint FK_RELATIONSHIP_45 foreign key (ID_USUARIO)
+alter table DIRECCION_USUARIO add constraint FK_RELATIONSHIP_44 foreign key (ID_USUARIO)
       references USUARIO (ID_USUARIO) on delete restrict on update restrict;
 
 alter table ESTUDIANTE add constraint FK_RELATIONSHIP_2 foreign key (ID_USUARIO)
@@ -587,13 +686,13 @@ alter table ESTUDIANTE add constraint FK_RELATIONSHIP_2 foreign key (ID_USUARIO)
 alter table ESTUDIANTE add constraint FK_RELATIONSHIP_31 foreign key (ID_DEPARTAMENTO)
       references DEPARTAMENTO (ID_DEPARTAMENTO) on delete restrict on update restrict;
 
-alter table ESTUDIANTE add constraint FK_RELATIONSHIP_37 foreign key (ID_ESTADO_ESTUDIANTE)
+alter table ESTUDIANTE add constraint FK_RELATIONSHIP_36 foreign key (ID_ESTADO_ESTUDIANTE)
       references ESTADO_ESTUDIANTE (ID_ESTADO_ESTUDIANTE) on delete restrict on update restrict;
 
-alter table HABILIDAD_ESTUDIANTE add constraint FK_RELATIONSHIP_42 foreign key (ID_ESTUDIANTE)
+alter table HABILIDAD_ESTUDIANTE add constraint FK_RELATIONSHIP_41 foreign key (ID_ESTUDIANTE)
       references ESTUDIANTE (ID_ESTUDIANTE) on delete restrict on update restrict;
 
-alter table HABILIDAD_ESTUDIANTE add constraint FK_RELATIONSHIP_43 foreign key (ID_HABILIDAD)
+alter table HABILIDAD_ESTUDIANTE add constraint FK_RELATIONSHIP_42 foreign key (ID_HABILIDAD)
       references HABILIDAD (ID_HABILIDAD) on delete restrict on update restrict;
 
 alter table HABILIDAD_REQUERIDA add constraint FK_RELATIONSHIP_26 foreign key (ID_REQUERIMIENTO)
@@ -602,10 +701,13 @@ alter table HABILIDAD_REQUERIDA add constraint FK_RELATIONSHIP_26 foreign key (I
 alter table HABILIDAD_REQUERIDA add constraint FK_RELATIONSHIP_27 foreign key (ID_HABILIDAD)
       references HABILIDAD (ID_HABILIDAD) on delete restrict on update restrict;
 
+alter table IMPUESTO add constraint FK_RELATIONSHIP_50 foreign key (ID_PAIS)
+      references PAIS (ID_PAIS) on delete restrict on update restrict;
+
 alter table PAGO add constraint FK_RELATIONSHIP_23 foreign key (ID_BOLETA)
       references BOLETA_FACTURA (ID_BOLETA) on delete restrict on update restrict;
 
-alter table PAIS add constraint FK_RELATIONSHIP_41 foreign key (ID_DOCUMENTO)
+alter table PAIS add constraint FK_RELATIONSHIP_40 foreign key (ID_DOCUMENTO)
       references TIPO_DOCUMENTO (ID_DOCUMENTO) on delete restrict on update restrict;
 
 alter table PROPUESTA add constraint FK_RELATIONSHIP_16 foreign key (ID_ESTUDIANTE)
@@ -617,11 +719,14 @@ alter table PROPUESTA add constraint FK_RELATIONSHIP_18 foreign key (ID_ACUERDO)
 alter table PROYECTO add constraint FK_RELATIONSHIP_17 foreign key (ID_REPRESENTANTE)
       references REPRESENTANTE (ID_REPRESENTANTE) on delete restrict on update restrict;
 
-alter table PROYECTO add constraint FK_RELATIONSHIP_35 foreign key (ID_CATEGORIA_PROYECTO)
+alter table PROYECTO add constraint FK_RELATIONSHIP_34 foreign key (ID_CATEGORIA_PROYECTO)
       references CATEGORIA_PROYECTO (ID_CATEGORIA_PROYECTO) on delete restrict on update restrict;
 
-alter table PROYECTO add constraint FK_RELATIONSHIP_39 foreign key (ID_ESTADO_PROYECTO)
+alter table PROYECTO add constraint FK_RELATIONSHIP_38 foreign key (ID_ESTADO_PROYECTO)
       references ESTADO_PROYECTO (ID_ESTADO_PROYECTO) on delete restrict on update restrict;
+
+alter table RANGO_COSTO_CATEGORIA add constraint FK_RELATIONSHIP_46 foreign key (ID_COMISION)
+      references COMISION_RANGO_PROYECTO (ID_COMISION) on delete restrict on update restrict;
 
 alter table REGION_ESTADO add constraint FK_RELATIONSHIP_11 foreign key (ID_PAIS)
       references PAIS (ID_PAIS) on delete restrict on update restrict;
@@ -632,6 +737,9 @@ alter table REPRESENTANTE add constraint FK_RELATIONSHIP_3 foreign key (ID_USUAR
 alter table REPRESENTANTE add constraint FK_RELATIONSHIP_4 foreign key (ID_EMPRESA)
       references EMPRESA (ID_EMPRESA) on delete restrict on update restrict;
 
+alter table REPRESENTANTE add constraint FK_RELATIONSHIP_51 foreign key (ID_CARGO)
+      references CARGO (ID_CARGO) on delete restrict on update restrict;
+
 alter table REQUERIMIENTO add constraint FK_RELATIONSHIP_25 foreign key (ID_PROYECTO)
       references PROYECTO (ID_PROYECTO) on delete restrict on update restrict;
 
@@ -641,8 +749,11 @@ alter table TEST_RANKING add constraint FK_RELATIONSHIP_8 foreign key (ID_ESTUDI
 alter table TIPO_DOCUMENTO add constraint FK_RELATIONSHIP_1 foreign key (ID_USUARIO)
       references USUARIO (ID_USUARIO) on delete restrict on update restrict;
 
-alter table TIPO_DOCUMENTO add constraint FK_RELATIONSHIP_40 foreign key (ID_PAIS)
+alter table TIPO_DOCUMENTO add constraint FK_RELATIONSHIP_39 foreign key (ID_PAIS)
       references PAIS (ID_PAIS) on delete restrict on update restrict;
+
+alter table TIPO_TEST_RANKING add constraint FK_RELATIONSHIP_47 foreign key (ID_TEST_RANKING)
+      references TEST_RANKING (ID_TEST_RANKING) on delete restrict on update restrict;
 
 alter table TUTORIAL add constraint FK_RELATIONSHIP_30 foreign key (ID_HABILIDAD)
       references HABILIDAD (ID_HABILIDAD) on delete restrict on update restrict;
