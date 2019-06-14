@@ -1,0 +1,51 @@
+Direccion - Tipo_Direccion
+- Particular
+- Comercial
+- Facturacion
+
+Calificacion - Calificacion
+- 1
+- 2
+- 3
+- 4
+- 5
+
+Estudiante - Carrera
+- Ingenieria Ejecución Informática
+- Ingenieria Civil Informatica
+- Ingenieria Informatica
+- Ingeniero Redes
+- Diseño Grafico
+
+Propuesta - Estado_Propuesta
+- Presentada
+- Aceptada
+- Rechazada
+- Retirada
+- Cancelada
+
+Acuerdo - Estado_Acuerdo
+- En revision
+- En Desarrollo
+- Atrasado
+- Finalizado
+- Cancelado
+- Rechazado
+
+Proyecto - Estado_Proyecto
+- Presentado
+- Extendido
+- Iniciado
+- Terminado
+
+Habilidad - Dificultad_Hbilidad
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+- 10
